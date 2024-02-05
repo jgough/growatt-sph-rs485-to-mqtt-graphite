@@ -6,23 +6,20 @@ services:
     devices:
        - /dev/ttyUSB0:/dev/ttyUSB0
     privileged: true
-    depends_on: [influxdb, mosquitto]
+    depends_on: [graphite, mosquitto]
     volumes:
       - ./python:/usr/src/app
-  influxdb:
-    image: influxdb:1.8
-    container_name: influxdb
+  graphite:
+    image: graphiteapp/graphite-statsd
+    container_name: graphite
     restart: always
     ports:
-      - "8086:8086"
+      - "2003-2004:2003-2004"
+      - "8080:80"
     volumes:
-      - ./influxdb/data:/var/lib/influxdb
-      - ./influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-      - ./influxdb/init:/docker-entrypoint-initdb.d
-    environment:
-      - INFLUXDB_ADMIN_USER=${INFLUXDB_USERNAME} # sourced from .env
-      - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_PASSWORD} # sourced from .env
-
+      - ./graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
+      - ./graphite/storage-aggregation.conf:/opt/graphite/conf/storage-aggregation.conf
+      - ./graphite/data:/opt/graphite/storage/whisper
   grafana:
     restart: always
     image: grafana/grafana:9.0.8
@@ -32,7 +29,6 @@ services:
       - ./grafana/lib:/var/lib/grafana
       - ./grafana/etc:/etc/grafana
       - ./grafana/log:/var/log/grafana
-
   mosquitto:
     image: eclipse-mosquitto
     restart: always
@@ -42,5 +38,4 @@ services:
     ports:
       - 1883:1883
       - 9001:9001
-
 

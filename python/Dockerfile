@@ -1,4 +1,4 @@
-FROM pypy:3.9
+FROM python:3.12
 
 WORKDIR /usr/src/app
 
@@ -7,5 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "pypy3", "-u", "./growatt.py" ]
+CMD [ "python", "-u", "./growatt.py" ]
 

@@ -1,4 +1,3 @@
-
 import os
 import time
 import json
@@ -7,8 +6,7 @@ from configparser import ConfigParser
 import paho.mqtt.client as mqtt
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.exceptions import ModbusIOException
-from pprint import pprint
-from influxdb import InfluxDBClient
+import graphyte
 
 config = ConfigParser()
 config.read("config.toml")
@@ -38,9 +36,7 @@ port = config['DEFAULT']['port']
 
 client = ModbusClient(method='rtu', port=port, baudrate=9600, stopbits=1, parity='N', bytesize=8, timeout=1)
 client.connect()
-influx = InfluxDBClient(host='influxdb', port=8086)
-influx.create_database('inverter')
-influx.switch_database('inverter')
+graphyte.init('graphite', port=2003)
 
 while True:
     regs = {}
@@ -53,12 +49,9 @@ while True:
             else:
                 regs[map] = registers.get_single(row, regMap[map]['id'] - reg['start'], regMap[map]['mul'])
 
-
-    influx.write_points([{
-        "measurement": "inverter",
-        "fields": regs 
-    }], time_precision='s')
-  
+    print(regs)
     for key, value in regs.items():
+        graphyte.send("inverter." + key, value)
         mqtt_client.publish("inverter/growattmqtt/" + key, payload=value)
+
     time.sleep(5)
