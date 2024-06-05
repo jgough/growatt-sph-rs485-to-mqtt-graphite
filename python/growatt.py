@@ -20,7 +20,7 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Bad connection Returned code=",rc)
 
-mqtt_client = mqtt.Client("inverter")
+mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, "inverter")
 mqtt_client.on_connect = on_connect
 mqtt_client.connect("mosquitto")
 mqtt_client.loop_start()
